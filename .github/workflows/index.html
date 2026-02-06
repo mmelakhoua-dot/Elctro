@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Sport Market Games</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0b0f1a;
+    color:#fff;
+}
+.hidden{display:none}
+
+#login{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+#login input,button{
+    width:80%;
+    max-width:300px;
+    margin:6px;
+    padding:12px;
+    border-radius:8px;
+    border:none;
+}
+button{
+    background:#1e90ff;
+    color:#fff;
+    font-size:16px;
+}
+
+header{
+    background:#11162a;
+    padding:15px;
+    text-align:center;
+    font-size:22px;
+    font-weight:bold;
+}
+
+.product{
+    background:#161c36;
+    margin:10px;
+    padding:10px;
+    border-radius:10px;
+}
+.product img{
+    width:100%;
+    border-radius:8px;
+}
+
+.nav{
+    position:fixed;
+    bottom:0;
+    width:100%;
+    display:flex;
+    background:#11162a;
+}
+.nav div{
+    flex:1;
+    text-align:center;
+    padding:10px;
+    font-size:18px;
+    cursor:pointer;
+}
+.star{color:#4fc3ff}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+    <h2>الدخول</h2>
+    <input id="name" placeholder="الاسم">
+    <input id="lastname" placeholder="اللقب">
+    <button onclick="login()">دخول</button>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+    <header onclick="show('home')">🎮 Sport Market</header>
+
+    <div id="home"></div>
+
+    <div id="add" class="hidden">
+        <input id="pname" placeholder="اسم المنتج">
+        <input id="pprice" placeholder="السعر">
+        <input id="plocation" placeholder="المكان">
+        <input id="pdesc" placeholder="وصف المنتج">
+        <input id="pimg" placeholder="رابط صورة المنتج">
+        <button onclick="addProduct()">OK</button>
+    </div>
+
+    <div id="search" class="hidden">
+        <input id="searchInput" placeholder="بحث عن حساب" oninput="searchUser()">
+        <div id="searchResults"></div>
+    </div>
+
+    <div id="profile" class="hidden"></div>
+</div>
+
+<div class="nav hidden" id="nav">
+    <div onclick="show('home')">🏠</div>
+    <div onclick="show('add')">➕</div>
+    <div onclick="show('search')">🔍</div>
+    <div onclick="show('profile')">👤</div>
+</div>
+
+<script>
+let currentUser=null;
+
+/* ===== LOGIN ===== */
+function login(){
+    let n=name.value.trim();
+    let l=lastname.value.trim();
+
+    if(!n||!l){
+        alert("اكتب الاسم واللقب");
+        return;
+    }
+
+    let users=JSON.parse(localStorage.getItem("users")||"[]");
+    let user=users.find(u=>u.name===n && u.lastname===l);
+
+    if(!user){
+        user={
+            name:n,
+            lastname:l,
+            followers:0,
+            products:[]
+        };
+        users.push(user);
+        localStorage.setItem("users",JSON.stringify(users));
+    }
+
+    currentUser=user;
+    localStorage.setItem("currentUser",JSON.stringify(user));
+    startApp();
+}
+
+/* ===== START APP ===== */
+function startApp(){
+    login.classList.add("hidden");
+    app.classList.remove("hidden");
+    nav.classList.remove("hidden");
+    loadHome();
+    loadProfile();
+}
+
+/* ===== NAV ===== */
+function show(id){
+    ["home","add","search","profile"].forEach(x=>{
+        document.getElementById(x).classList.add("hidden");
+    });
+    document.getElementById(id).classList.remove("hidden");
+}
+
+/* ===== PRODUCTS ===== */
+function addProduct(){
+    let product={
+        name:pname.value,
+        price:pprice.value,
+        location:plocation.value,
+        desc:pdesc.value,
+        img:pimg.value,
+        owner:currentUser.name+" "+currentUser.lastname
+    };
+
+    let products=JSON.parse(localStorage.getItem("products")||"[]");
+    products.push(product);
+    localStorage.setItem("products",JSON.stringify(products));
+
+    currentUser.products.push(product);
+    updateUser();
+
+    show("home");
+    loadHome();
+}
+
+function loadHome(){
+    home.innerHTML="";
+    let products=JSON.parse(localStorage.getItem("products")||"[]");
+    if(products.length===0){
+        home.innerHTML="<p style='text-align:center'>لا يوجد منتجات</p>";
+        return;
+    }
+    products.forEach(p=>{
+        home.innerHTML+=`
+        <div class="product">
+            <img src="${p.img}">
+            <h3>${p.name}</h3>
+            <p>${p.desc}</p>
+            <b>${p.price} DT</b>
+            <p>البائع: ${p.owner}</p>
+        </div>`;
+    });
+}
+
+/* ===== SEARCH ===== */
+function searchUser(){
+    let val=searchInput.value.toLowerCase();
+    searchResults.innerHTML="";
+    let users=JSON.parse(localStorage.getItem("users")||"[]");
+    users.forEach(u=>{
+        if(u.name.toLowerCase().includes(val)||u.lastname.toLowerCase().includes(val)){
+            let star=u.followers>=1000?"⭐":"";
+            searchResults.innerHTML+=`
+            <div class="product">
+                <b>${u.name} ${u.lastname} <span class="star">${star}</span></b>
+                <p>متابعين: ${u.followers}</p>
+            </div>`;
+        }
+    });
+}
+
+/* ===== PROFILE ===== */
+function loadProfile(){
+    let star=currentUser.followers>=1000?"⭐":"";
+    profile.innerHTML=`
+        <h2>${currentUser.name} ${currentUser.lastname} <span class="star">${star}</span></h2>
+        <p>المتابعين: ${currentUser.followers}</p>
+        <h3>منتجاتي</h3>
+    `;
+}
+
+/* ===== UPDATE USER ===== */
+function updateUser(){
+    let users=JSON.parse(localStorage.getItem("users"));
+    let i=users.findIndex(u=>u.name===currentUser.name && u.lastname===currentUser.lastname);
+    users[i]=currentUser;
+    localStorage.setItem("users",JSON.stringify(users));
+    localStorage.setItem("currentUser",JSON.stringify(currentUser));
+}
+
+/* ===== AUTO LOGIN ===== */
+let saved=JSON.parse(localStorage.getItem("currentUser"));
+if(saved){
+    currentUser=saved;
+    startApp();
+}
+</script>
+
+</body>
+  </html>
