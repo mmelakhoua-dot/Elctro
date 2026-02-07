@@ -109,11 +109,13 @@
 </main>
 
 <script>
+// العنصر الذي يعرض السوق
 const market = document.getElementById('market');
 
-// تحميل المنتجات من LocalStorage عند فتح الصفحة
+// جلب المنتجات من LocalStorage
 let products = JSON.parse(localStorage.getItem('products') || '[]');
 
+// دالة عرض المنتجات
 function renderProducts() {
     if(products.length === 0){
         market.innerHTML = "لا يوجد حسابات بعد.";
@@ -134,6 +136,7 @@ function renderProducts() {
     });
 }
 
+// دالة إضافة منتج جديد
 function addProduct() {
     const game = document.getElementById('game').value.trim();
     const price = document.getElementById('price').value.trim();
@@ -151,6 +154,7 @@ function addProduct() {
 
     renderProducts();
 
+    // تنظيف الحقول
     document.getElementById('game').value = '';
     document.getElementById('price').value = '';
     document.getElementById('desc').value = '';
@@ -159,7 +163,7 @@ function addProduct() {
     alert("تم النشر! الحساب ظهر في السوق.");
 }
 
-// وظيفة شراء المنتج (حذف من القائمة مؤقتًا)
+// دالة شراء المنتج (حذف من القائمة)
 function buyProduct(index){
     if(confirm("هل تريد شراء هذا الحساب؟")){
         products.splice(index,1);
@@ -169,9 +173,9 @@ function buyProduct(index){
     }
 }
 
-// أول مرة تحميل الصفحة
+// عرض المنتجات عند فتح الصفحة
 renderProducts();
 </script>
 
 </body>
-</html>
+    </html>
